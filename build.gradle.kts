@@ -1,58 +1,62 @@
 plugins {
-    java
-    id("org.springframework.boot") version "3.5.0"
-    id("io.spring.dependency-management") version "1.1.7"
+    `java-library`
+    `maven-publish`
+    id("pl.allegro.tech.build.axion-release") version "1.15.2"
 }
 
-group = "de.ml.keycloak.security.starter"
-version = "0.0.1-SNAPSHOT"
+group = "io.github.maxlamm"
+description = "Keycloak Spring Boot Security Integration"
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
-configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
-    }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.0")
-    }
+repositories {
+    mavenCentral()
 }
 
 dependencies {
-    implementation(libs.spring.boot.starter.web)
+    // Spring Boot BOM verwaltet alle Spring Dependencies automatisch
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.2.5"))
+    
+    // Spring Boot Dependencies (über Version Catalog)
     implementation(libs.spring.boot.starter.security)
-    implementation(libs.spring.boot.starter.oauth2.client)
-    implementation(libs.spring.boot.starter.oauth2.authorization.server)
-
+    implementation(libs.spring.boot.autoconfigure)
+    compileOnly(libs.spring.boot.configuration.processor)
+    
+    // Lombok (über Version Catalog)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-
-    developmentOnly(libs.spring.boot.devtools)
-
-    testImplementation(libs.spring.boot.starter.test)
-    testImplementation(libs.spring.security.test)
-    testRuntimeOnly(libs.junit.platform.launcher)
+    
+    // Test Dependencies (über Version Catalog)
+    testImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+    }
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 tasks.test {
     useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
+}
+
+scmVersion {
+    tag {
+        prefix.set("")
+    }
+    repository {
+        type.set("git")
     }
 }
 
+version = scmVersion.version
+
+tasks.named("release") {
+    dependsOn("test")
+}
+
+tasks.matching { it.name == "verifyRelease" }.configureEach {
+    enabled = false
+}
