@@ -60,3 +60,23 @@ tasks.named("release") {
 tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
 }
+
+// Maven Publishing Configuration
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+    
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/maxlamm/ml-keycloak-security-starter")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
