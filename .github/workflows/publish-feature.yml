@@ -4,55 +4,58 @@ on:
   push:
     branches:
       - feature/implement-semver
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
 
 jobs:
   publish-snapshot:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
-      
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Needed for axion-release
-        
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Display version
-      run: |
-        echo "Current version:"
-        ./gradlew currentVersion
-        
-    - name: Run tests
-      run: ./gradlew test
-      
-    - name: Build
-      run: ./gradlew build
-      
-    - name: Publish to GitHub Packages
-      run: ./gradlew publish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_ACTOR: ${{ github.actor }}
-        
-    - name: Summary
-      run: |
-        echo "### 📦 Package Published!" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Version: $(./gradlew currentVersion -q)" >> $GITHUB_STEP_SUMMARY
-        echo "Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "View package: https://github.com/${{ github.repository }}/packages" >> $GITHUB_STEP_SUMMARY
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.1'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Display version (Check)
+        run: |
+          echo "Aktuelle Version laut Axion: $(./gradlew currentVersion -q)"
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish --info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}     # ← secret heißt nun GH_TOKEN
+          GITHUB_ACTOR: ${{ github.actor }}
+
+      - name: Summary
+        run: |
+          echo "### 📦 Package Published!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Version: $(./gradlew currentVersion -q)" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View package: https://github.com/${{ github.repository }}/packages" >> $GITHUB_STEP_SUMMARY
