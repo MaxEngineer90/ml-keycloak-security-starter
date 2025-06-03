@@ -3,13 +3,12 @@ name: CI
 on:
   push:
     branches:
-      - feature/implement-semver
-      - main
+      - develop
+      - 'feature/**'
   pull_request:
     branches:
-      - feature/implement-semver
       - main
-
+    
 jobs:
   test:
     runs-on: ubuntu-latest

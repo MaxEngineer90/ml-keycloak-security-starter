@@ -1,10 +1,10 @@
-name: Publish Feature Branch
+name: Publish on PR to Main
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/implement-semver
-  workflow_dispatch:
+      - main
+    types: [opened, synchronize, reopened]
 
 jobs:
   publish-snapshot:
@@ -50,9 +50,10 @@ jobs:
         
     - name: Summary
       run: |
-        echo "### 📦 Package Published!" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 PR Package Published!" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Version: $(./gradlew currentVersion -q)" >> $GITHUB_STEP_SUMMARY
-        echo "Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "PR: #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+        echo "Branch: ${{ github.head_ref }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "View package: https://github.com/${{ github.repository }}/packages" >> $GITHUB_STEP_SUMMARY
