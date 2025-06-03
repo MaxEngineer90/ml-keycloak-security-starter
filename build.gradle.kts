@@ -63,10 +63,20 @@ tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
 }
 
-// Maven Publishing Configuration
+// Maven Publishing Configuration (GitHub Official)
 publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            }
+        }
+    }
     publications {
-        create<MavenPublication>("maven") {
+        register<MavenPublication>("gpr") {
             from(components["java"])
             
             pom {
@@ -85,7 +95,7 @@ publishing {
                     developer {
                         id.set("MaxEngineer90")
                         name.set("Max Engineer")
-                        email.set("max@example.com") // Ersetze mit deiner Email
+                        email.set("max@example.com")
                     }
                 }
                 
@@ -97,24 +107,13 @@ publishing {
             }
         }
     }
-    
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String? ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String? ?: ""
-            }
-        }
-    }
 }
 
 // Debug task to check publishing configuration
 tasks.register("debugPublishing") {
     doLast {
-        println("GitHub Actor: ${System.getenv("GITHUB_ACTOR")}")
-        println("GitHub Token present: ${!System.getenv("GITHUB_TOKEN").isNullOrEmpty()}")
+        println("Username: ${project.findProperty("gpr.user") ?: System.getenv("USERNAME")}")
+        println("Token present: ${!(project.findProperty("gpr.key") ?: System.getenv("TOKEN")).isNullOrEmpty()}")
         println("Project version: $version")
         println("Project group: $group")
         println("Repository URL: https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
