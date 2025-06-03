@@ -108,14 +108,3 @@ publishing {
         }
     }
 }
-
-// Debug task to check publishing configuration
-tasks.register("debugPublishing") {
-    doLast {
-        println("Username: ${project.findProperty("gpr.user") ?: System.getenv("USERNAME")}")
-        println("Token present: ${!(project.findProperty("gpr.key") ?: System.getenv("TOKEN")).isNullOrEmpty()}")
-        println("Project version: $version")
-        println("Project group: $group")
-        println("Repository URL: https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
-    }
-}
