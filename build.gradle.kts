@@ -4,7 +4,7 @@ plugins {
     id("pl.allegro.tech.build.axion-release") version "1.15.2"
 }
 
-group = "io.github.maxlamm"
+group = "io.github.maxengineer90"
 description = "Keycloak Spring Boot Security Integration"
 
 repositories {
@@ -36,6 +36,8 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+    withSourcesJar()
+    withJavadocJar()
 }
 
 tasks.test {
@@ -66,17 +68,55 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+            
+            pom {
+                name.set("ML Keycloak Security Starter")
+                description.set("Keycloak Spring Boot Security Integration")
+                url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+                
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id.set("MaxEngineer90")
+                        name.set("Max Engineer")
+                        email.set("max@example.com") // Ersetze mit deiner Email
+                    }
+                }
+                
+                scm {
+                    connection.set("scm:git:git://github.com/MaxEngineer90/ml-keycloak-security-starter.git")
+                    developerConnection.set("scm:git:ssh://github.com:MaxEngineer90/ml-keycloak-security-starter.git")
+                    url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+                }
+            }
         }
     }
     
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/maxlamm/ml-keycloak-security-starter")
+            url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String? ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String? ?: ""
             }
         }
+    }
+}
+
+// Debug task to check publishing configuration
+tasks.register("debugPublishing") {
+    doLast {
+        println("GitHub Actor: ${System.getenv("GITHUB_ACTOR")}")
+        println("GitHub Token present: ${!System.getenv("GITHUB_TOKEN").isNullOrEmpty()}")
+        println("Project version: $version")
+        println("Project group: $group")
+        println("Repository URL: https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
     }
 }

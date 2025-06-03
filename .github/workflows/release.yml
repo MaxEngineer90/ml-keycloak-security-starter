@@ -57,12 +57,12 @@ jobs:
       run: ./gradlew build
       
     - name: Create GitHub Release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
       with:
         tag_name: ${{ steps.version.outputs.VERSION }}
-        release_name: Release ${{ steps.version.outputs.VERSION }}
+        name: Release ${{ steps.version.outputs.VERSION }}
         draft: false
         prerelease: false
         body: |
@@ -70,7 +70,7 @@ jobs:
           
           ### 📦 Installation
           ```kotlin
-          implementation("io.github.maxlamm:ml-keycloak-security-starter:${{ steps.version.outputs.VERSION }}")
+          implementation("io.github.maxengineer90:ml-keycloak-security-starter:${{ steps.version.outputs.VERSION }}")
           ```
           
           ### 📋 Changelog
@@ -79,7 +79,7 @@ jobs:
     - name: Publish to GitHub Packages
       run: ./gradlew publish
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         GITHUB_ACTOR: ${{ github.actor }}
         
     - name: Summary
