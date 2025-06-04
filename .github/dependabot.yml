@@ -1,0 +1,78 @@
+# .github/dependabot.yml
+version: 2
+updates:
+  # Gradle Dependencies
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Berlin"
+    
+  
+    groups:
+     
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      
+     
+      spring-framework:
+        patterns:
+          - "org.springframework*"
+          - "org.springframework.boot*"
+      
+     
+      test-dependencies:
+        patterns:
+          - "*junit*"
+          - "*mockito*"
+          - "*testcontainers*"
+          - "*spring-boot-starter-test*"
+      
+      # Build Tools
+      build-tools:
+        patterns:
+          - "*gradle*"
+          - "*lombok*"
+    
+    # Assignees and Reviewers
+    assignees:
+      - "MaxEngineer90"
+    reviewers:
+      - "MaxEngineer90"
+    
+   
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    
+   
+    open-pull-requests-limit: 8
+    
+   
+    ignore:
+     
+      - dependency-name: "java"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions Updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Berlin"
+    
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    
+    assignees:
+      - "MaxEngineer90"
+    
+    open-pull-requests-limit: 3

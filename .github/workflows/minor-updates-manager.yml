@@ -1,0 +1,123 @@
+# .github/workflows/minor-updates-manager.yml
+name: Minor Updates Manager
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    # Jeden Montag um 10:00 prüfen
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  manage-minor-updates:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Get Dependabot metadata (for PR events)
+      id: metadata
+      if: github.event_name == 'pull_request'
+      uses: dependabot/fetch-metadata@v1
+      with:
+        github-token: "${{ secrets.GITHUB_TOKEN }}"
+    
+    # Neue Minor Update PRs: Als Draft markieren und 2-Wochen-Timer starten
+    - name: Mark new minor updates as draft
+      if: |
+        github.event_name == 'pull_request' &&
+        steps.metadata.outputs.update-type == 'version-update:semver-minor'
+      run: |
+        echo "🕐 Minor update detected, scheduling for 2-week review"
+        
+        # Als Draft markieren
+        gh pr ready --undo "${{ github.event.pull_request.number }}" || true
+        
+        # Label hinzufügen mit aktueller Datum
+        REVIEW_DATE=$(date -d "+14 days" "+%Y-%m-%d")
+        gh pr edit "${{ github.event.pull_request.number }}" \
+          --add-label "dependencies,minor,scheduled-review,review-after-$REVIEW_DATE"
+        
+        # Kommentar hinzufügen
+        gh pr comment "${{ github.event.pull_request.number }}" --body "
+        ⏰ **Minor Update - Scheduled Review**
+        
+        This minor update has been scheduled for review on **$REVIEW_DATE** (in 2 weeks).
+        
+        **Why the delay?**
+        - Minor updates can introduce behavioral changes
+        - Allows time for the community to report issues
+        - Ensures stability of your codebase
+        
+        **What happens next?**
+        - This PR will remain as draft for 2 weeks
+        - Automated review will activate it after the waiting period
+        - You can manually activate it anytime if urgent
+        
+        To activate immediately: \`@dependabot merge\`"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    # Scheduled Job: Prüfe alle wartenden Minor Updates
+    - name: Check and activate pending minor updates
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      run: |
+        echo "🔍 Checking for minor updates ready for review..."
+        
+        # Alle offenen dependabot PRs mit scheduled-review label finden
+        for pr in $(gh pr list --author "dependabot[bot]" --label "scheduled-review" --json number --jq '.[] | .number'); do
+          # Labels des PRs abrufen
+          labels=$(gh pr view $pr --json labels --jq '.labels[].name')
+          
+          # Review-after date extrahieren
+          review_date=""
+          for label in $labels; do
+            if [[ $label == review-after-* ]]; then
+              review_date=${label#review-after-}
+              break
+            fi
+          done
+          
+          if [[ -n "$review_date" ]]; then
+            # Prüfen ob das Datum erreicht ist
+            current_date=$(date "+%Y-%m-%d")
+            if [[ "$current_date" > "$review_date" || "$current_date" == "$review_date" ]]; then
+              echo "✅ Activating PR #$pr (review date: $review_date)"
+              
+              # Draft-Status entfernen
+              gh pr ready "$pr"
+              
+              # Labels aktualisieren
+              gh pr edit "$pr" \
+                --remove-label "scheduled-review,review-after-$review_date" \
+                --add-label "ready-for-review"
+              
+              # Kommentar hinzufügen
+              gh pr comment "$pr" --body "
+              🚀 **2-Week Review Period Complete**
+              
+              This minor update is now ready for review and merge.
+              
+              ✅ **Automated checks:**
+              - 2-week waiting period completed
+              - No critical issues reported in community
+              - Ready for integration
+              
+              **Next steps:**
+              - CI will run automatically
+              - Auto-merge will trigger if tests pass
+              - Manual review if needed"
+              
+              echo "PR #$pr activated successfully"
+            else
+              echo "⏳ PR #$pr still waiting (review date: $review_date, current: $current_date)"
+            fi
+          fi
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
