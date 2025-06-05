@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     // Spring Boot BOM verwaltet alle Spring Dependencies automatisch
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.2.5"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.0"))
     
     // Spring Boot Dependencies (über Version Catalog)
     implementation(libs.spring.boot.starter.security)

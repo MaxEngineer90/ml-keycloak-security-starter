@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    
+ 
+    <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter" />
+    <conversionRule conversionWord="wex" class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+    <conversionRule conversionWord="wEx" class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+    
+
+    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    
+
+    <springProfile name="dev">
+        <!-- Console Appender mit Farben für Development -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+        
+       
+        <appender name="FILE_DEV" class="ch.qos.logback.core.FileAppender">
+            <file>logs/ml-keycloak-dev.log</file>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{40}] - %msg%n</pattern>
+            </encoder>
+        </appender>
+        
+       
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_DEV"/>
+        </root>
+        
+        
+        <logger name="de.ml.keyclaok" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_DEV"/>
+        </logger>
+        
+        <logger name="org.springframework.security" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_DEV"/>
+        </logger>
+        
+        <logger name="org.springframework.web" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_DEV"/>
+        </logger>
+    </springProfile>
+    
+  
+    <springProfile name="prod">
+        <!-- Rolling File Appender für Production -->
+        <appender name="FILE_PROD" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/var/log/ml-keycloak-security-starter.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>/var/log/ml-keycloak-security-starter.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [ml-keycloak] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+        
+        
+        <appender name="CONSOLE_PROD" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+        
+     
+        <root level="WARN">
+            <appender-ref ref="FILE_PROD"/>
+            <appender-ref ref="CONSOLE_PROD"/>
+        </root>
+        
+        
+        <logger name="de.ml.keyclaok" level="INFO" additivity="false">
+            <appender-ref ref="FILE_PROD"/>
+            <appender-ref ref="CONSOLE_PROD"/>
+        </logger>
+        
+       <logger name="org.springframework.security" level="WARN" additivity="false">
+            <appender-ref ref="FILE_PROD"/>
+            <appender-ref ref="CONSOLE_PROD"/>
+        </logger>
+    </springProfile>
+    
+</configuration>

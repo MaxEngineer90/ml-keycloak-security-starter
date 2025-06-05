@@ -1,0 +1,28 @@
+2025-06-05 08:47:50.931 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 18435 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 08:47:50.932 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.2.5, Spring v6.1.6
+2025-06-05 08:47:50.932 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 08:47:51.389 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 0.75 seconds (process running for 1.098)
+2025-06-05 08:49:59.688 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 19853 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 08:49:59.689 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.2.5, Spring v6.1.6
+2025-06-05 08:49:59.690 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 08:50:00.168 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 0.791 seconds (process running for 1.141)
+2025-06-05 08:56:26.022 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 23510 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 08:56:26.027 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.2.5, Spring v6.1.6
+2025-06-05 08:56:26.028 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 08:56:26.638 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 1.091 seconds (process running for 1.474)
+2025-06-05 08:56:55.256 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 24166 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 08:56:55.257 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.5.0, Spring v6.2.7
+2025-06-05 08:56:55.258 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 08:56:55.655 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 0.746 seconds (process running for 1.017)
+2025-06-05 08:57:20.048 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 24635 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 08:57:20.050 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.5.0, Spring v6.2.7
+2025-06-05 08:57:20.050 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 08:57:20.427 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 0.693 seconds (process running for 0.979)
+2025-06-05 08:59:58.970 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 26275 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 08:59:58.973 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.5.0, Spring v6.2.7
+2025-06-05 08:59:58.974 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 08:59:59.364 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 0.794 seconds (process running for 0.994)
+2025-06-05 09:00:19.262 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Starting MlKeyclaokSecurityStarterApplication using Java 21.0.7 with PID 26699 (/root/repos/projects/ml-keyclaok-security-starter/build/classes/java/main started by root in /root/repos/projects/ml-keyclaok-security-starter)
+2025-06-05 09:00:19.263 [main] DEBUG [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Running with Spring Boot v3.5.0, Spring v6.2.7
+2025-06-05 09:00:19.264 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - The following 1 profile is active: "dev"
+2025-06-05 09:00:19.677 [main] INFO  [d.m.k.s.s.MlKeyclaokSecurityStarterApplication] - Started MlKeyclaokSecurityStarterApplication in 0.814 seconds (process running for 1.022)

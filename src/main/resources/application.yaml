@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: ml-keycloak-security-starter
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  config: classpath:logback-spring.xml
+
+app:
+  version: "@project.version@"
+
+banner:
+  location: classpath:banner.txt
