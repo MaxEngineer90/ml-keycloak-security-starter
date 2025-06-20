@@ -5,10 +5,7 @@ updates:
 - package-ecosystem: "gradle"
   directory: "/"
   schedule:
-    interval: "weekly"
-    day: "monday"
-    time: "08:00"
-    timezone: "Europe/Berlin"
+    interval: "daily"
 
   # Rebase strategy for cleaner git history
   rebase-strategy: "auto"
@@ -87,7 +84,6 @@ updates:
   - "MaxEngineer90"
   reviewers:
   - "MaxEngineer90"
-
   # Commit message format
   commit-message:
     prefix: "deps"
