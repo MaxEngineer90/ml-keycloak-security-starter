@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
 
 jobs:
   dependabot-automerge:
@@ -20,7 +21,7 @@ jobs:
       
     - name: Get Dependabot metadata
       id: metadata
-      uses: dependabot/fetch-metadata@v1
+      uses: dependabot/fetch-metadata@v2
       with:
         github-token: "${{ secrets.GITHUB_TOKEN }}"
     
@@ -31,64 +32,179 @@ jobs:
         distribution: 'temurin'
         
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
       
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
     - name: Run tests
-      run: ./gradlew test
+      run: ./gradlew test --no-daemon
       
+    - name: Determine merge strategy
+      id: merge-strategy
+      run: |
+        UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
+        DEPENDENCY_NAMES="${{ steps.metadata.outputs.dependency-names }}"
+        ALERT_STATE="${{ steps.metadata.outputs.alert-state }}"
+        
+        echo "Update type: $UPDATE_TYPE"
+        echo "Dependencies: $DEPENDENCY_NAMES"
+        echo "Alert state: $ALERT_STATE"
+        
+        # Security updates - immediate merge
+        if [[ "$ALERT_STATE" == "FIXED" ]]; then
+          echo "STRATEGY=security" >> $GITHUB_OUTPUT
+          echo "AUTO_MERGE=true" >> $GITHUB_OUTPUT
+        # Patch updates - immediate merge
+        elif [[ "$UPDATE_TYPE" == "version-update:semver-patch" ]]; then
+          echo "STRATEGY=patch" >> $GITHUB_OUTPUT
+          echo "AUTO_MERGE=true" >> $GITHUB_OUTPUT
+        # Safe minor updates - immediate merge
+        elif [[ "$UPDATE_TYPE" == "version-update:semver-minor" ]]; then
+          SAFE_DEPS="lombok gradle junit mockito testcontainers slf4j logback"
+          IS_SAFE=false
+          for dep in $SAFE_DEPS; do
+            if echo "$DEPENDENCY_NAMES" | grep -i "$dep" > /dev/null; then
+              IS_SAFE=true
+              break
+            fi
+          done
+          
+          if [[ "$IS_SAFE" == "true" ]]; then
+            echo "STRATEGY=safe-minor" >> $GITHUB_OUTPUT
+            echo "AUTO_MERGE=true" >> $GITHUB_OUTPUT
+          else
+            echo "STRATEGY=review-minor" >> $GITHUB_OUTPUT
+            echo "AUTO_MERGE=false" >> $GITHUB_OUTPUT
+          fi
+        # Major updates - manual review required
+        elif [[ "$UPDATE_TYPE" == "version-update:semver-major" ]]; then
+          echo "STRATEGY=major" >> $GITHUB_OUTPUT
+          echo "AUTO_MERGE=false" >> $GITHUB_OUTPUT
+        else
+          echo "STRATEGY=unknown" >> $GITHUB_OUTPUT
+          echo "AUTO_MERGE=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Auto-merge security updates
+      if: steps.merge-strategy.outputs.STRATEGY == 'security'
+      run: |
+        echo "🚨 Security update detected - immediate merge"
+        gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+        gh pr comment "${{ github.event.pull_request.number }}" --body "
+        🔒 **Security Update - Auto-Merged**
+        
+        This security update has been automatically merged to address: **${{ steps.metadata.outputs.dependency-names }}**
+        
+        ✅ **Automated actions completed:**
+        - All tests passed
+        - Security vulnerability addressed
+        - Changes integrated safely
+        "
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Auto-merge patch updates
-      if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
+      if: steps.merge-strategy.outputs.STRATEGY == 'patch'
       run: |
         echo "🔧 Auto-merging patch update: ${{ steps.metadata.outputs.dependency-names }}"
         gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Auto-approve safe minor updates
-      if: |
-        steps.metadata.outputs.update-type == 'version-update:semver-minor' &&
-        contains(steps.metadata.outputs.dependency-names, 'lombok') ||
-        contains(steps.metadata.outputs.dependency-names, 'gradle') ||
-        contains(steps.metadata.outputs.dependency-names, 'junit')
+    - name: Auto-merge safe minor updates
+      if: steps.merge-strategy.outputs.STRATEGY == 'safe-minor'
       run: |
-        echo "✅ Auto-approving safe minor update: ${{ steps.metadata.outputs.dependency-names }}"
+        echo "✅ Auto-merging safe minor update: ${{ steps.metadata.outputs.dependency-names }}"
         gh pr review --approve "${{ github.event.pull_request.number }}"
         gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Comment on major updates
-      if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+    - name: Handle minor updates requiring review
+      if: steps.merge-strategy.outputs.STRATEGY == 'review-minor'
       run: |
+        echo "⏳ Minor update requires review: ${{ steps.metadata.outputs.dependency-names }}"
         gh pr comment "${{ github.event.pull_request.number }}" --body "
-        🚨 **Major Version Update**
+        📋 **Minor Update - Review Recommended**
         
-        This is a major version update for: **${{ steps.metadata.outputs.dependency-names }}**
+        This minor update for **${{ steps.metadata.outputs.dependency-names }}** requires manual review.
         
-        **Please review carefully:**
-        - Check for breaking changes in the changelog
-        - Test thoroughly before merging
-        - Consider updating related dependencies
+        **Why manual review?**
+        - Minor updates can introduce behavioral changes
+        - Dependency not in safe-merge list
+        - Better to verify compatibility first
         
-        **Auto-merge disabled** for major updates for safety."
+        **Next steps:**
+        ✅ Tests have passed automatically
+        🔍 Please review the changelog for breaking changes
+        ✅ Approve and merge when ready
+        
+        **Quick merge:** If you're confident, comment \`@dependabot merge\`
+        "
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Label PRs by update type
+    - name: Handle major updates
+      if: steps.merge-strategy.outputs.STRATEGY == 'major'
       run: |
-        case "${{ steps.metadata.outputs.update-type }}" in
-          "version-update:semver-patch")
-            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,auto-merge,patch"
+        echo "🚨 Major update requires careful review: ${{ steps.metadata.outputs.dependency-names }}"
+        gh pr comment "${{ github.event.pull_request.number }}" --body "
+        ⚠️ **Major Version Update - Manual Review Required**
+        
+        This is a major version update for: **${{ steps.metadata.outputs.dependency-names }}**
+        
+        **⚠️ Critical Review Checklist:**
+        - [ ] Review breaking changes in changelog/release notes
+        - [ ] Update application code if needed
+        - [ ] Test thoroughly in development environment
+        - [ ] Check for deprecated API usage
+        - [ ] Verify third-party integrations still work
+        - [ ] Update documentation if APIs changed
+        
+        **🔍 Resources:**
+        - [View dependency changelog](https://github.com/${{ steps.metadata.outputs.dependency-names }}/releases)
+        - [Migration guide](https://github.com/${{ steps.metadata.outputs.dependency-names }}/blob/main/MIGRATION.md)
+        
+        **Auto-merge is disabled** for major updates for safety.
+        "
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Label PRs appropriately
+      run: |
+        STRATEGY="${{ steps.merge-strategy.outputs.STRATEGY }}"
+        
+        case "$STRATEGY" in
+          "security")
+            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,security,auto-merged"
             ;;
-          "version-update:semver-minor")
-            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,minor"
+          "patch")
+            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,patch,auto-merge"
             ;;
-          "version-update:semver-major")
-            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,major,needs-review"
+          "safe-minor")
+            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,minor,safe,auto-merge"
+            ;;
+          "review-minor")
+            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,minor,needs-review"
+            ;;
+          "major")
+            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,major,needs-review,breaking-changes"
+            ;;
+          *)
+            gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependencies,needs-review"
             ;;
         esac
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Summary
+      run: |
+        echo "### 🤖 Dependabot Auto-Merge Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Strategy:** ${{ steps.merge-strategy.outputs.STRATEGY }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Dependencies:** ${{ steps.metadata.outputs.dependency-names }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Update Type:** ${{ steps.metadata.outputs.update-type }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Auto-Merge:** ${{ steps.merge-strategy.outputs.AUTO_MERGE }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**PR:** [#${{ github.event.number }}](${{ github.event.pull_request.html_url }})" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,186 @@
+# .github/workflows/dependency-dashboard.yml
+name: Dependency Dashboard
+
+on:
+  schedule:
+    # Every Monday at 09:00
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  dependency-dashboard:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      
+    - name: Generate dependency report
+      run: |
+        ./gradlew dependencies --configuration runtimeClasspath > dependency-report.txt
+        ./gradlew dependencyUpdates > dependency-updates.txt || true
+        
+    - name: Analyze Dependabot PRs
+      id: analyze-prs
+      run: |
+        # Get all open Dependabot PRs
+        OPEN_PRS=$(gh pr list --author "dependabot[bot]" --json number,title,labels,createdAt --jq length)
+        SECURITY_PRS=$(gh pr list --author "dependabot[bot]" --label "security" --json number --jq length)
+        MAJOR_PRS=$(gh pr list --author "dependabot[bot]" --label "major" --json number --jq length)
+        MINOR_PRS=$(gh pr list --author "dependabot[bot]" --label "minor" --json number --jq length)
+        PATCH_PRS=$(gh pr list --author "dependabot[bot]" --label "patch" --json number --jq length)
+        
+        echo "OPEN_PRS=$OPEN_PRS" >> $GITHUB_OUTPUT
+        echo "SECURITY_PRS=$SECURITY_PRS" >> $GITHUB_OUTPUT
+        echo "MAJOR_PRS=$MAJOR_PRS" >> $GITHUB_OUTPUT
+        echo "MINOR_PRS=$MINOR_PRS" >> $GITHUB_OUTPUT
+        echo "PATCH_PRS=$PATCH_PRS" >> $GITHUB_OUTPUT
+        
+        # Get detailed PR information
+        gh pr list --author "dependabot[bot]" --json number,title,labels,createdAt,url > dependabot-prs.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Check for outdated dependencies
+      id: outdated-deps
+      run: |
+        # This would require a plugin like gradle-versions-plugin
+        # Add to your build.gradle: id 'com.github.ben-manes.versions' version 'x.x.x'
+        if ./gradlew dependencyUpdates 2>/dev/null; then
+          echo "OUTDATED_CHECK=success" >> $GITHUB_OUTPUT
+        else
+          echo "OUTDATED_CHECK=skipped" >> $GITHUB_OUTPUT
+          echo "ℹ️ Add gradle-versions-plugin for better outdated dependency detection"
+        fi
+        
+    - name: Create or update dashboard issue
+      run: |
+        ISSUE_TITLE="📊 Dependency Dashboard - $(date '+%Y-%m-%d')"
+        ISSUE_BODY="# 📊 Dependency Dashboard
+        
+        > **Last updated:** $(date '+%Y-%m-%d %H:%M:%S UTC')
+        > **Auto-generated weekly dependency status report**
+        
+        ## 🔢 Summary
+        
+        | Type | Count | Status |
+        |------|--------|--------|
+        | 🚨 Security Updates | ${{ steps.analyze-prs.outputs.SECURITY_PRS }} | $([ ${{ steps.analyze-prs.outputs.SECURITY_PRS }} -gt 0 ] && echo "⚠️ Action Required" || echo "✅ No Issues") |
+        | 🔴 Major Updates | ${{ steps.analyze-prs.outputs.MAJOR_PRS }} | $([ ${{ steps.analyze-prs.outputs.MAJOR_PRS }} -gt 0 ] && echo "👀 Review Needed" || echo "✅ Up to Date") |
+        | 🟡 Minor Updates | ${{ steps.analyze-prs.outputs.MINOR_PRS }} | $([ ${{ steps.analyze-prs.outputs.MINOR_PRS }} -gt 0 ] && echo "📋 Pending Review" || echo "✅ Current") |
+        | 🟢 Patch Updates | ${{ steps.analyze-prs.outputs.PATCH_PRS }} | $([ ${{ steps.analyze-prs.outputs.PATCH_PRS }} -gt 0 ] && echo "🤖 Auto-merging" || echo "✅ Current") |
+        | **Total Open PRs** | **${{ steps.analyze-prs.outputs.OPEN_PRS }}** | $([ ${{ steps.analyze-prs.outputs.OPEN_PRS }} -gt 5 ] && echo "⚠️ High Volume" || echo "✅ Manageable") |
+        
+        ## 📋 Open Dependabot PRs
+        "
+        
+        # Add detailed PR information
+        if [ ${{ steps.analyze-prs.outputs.OPEN_PRS }} -gt 0 ]; then
+          echo "
+        ### 🚨 Security Updates (Priority: HIGH)
+        " >> issue_body_temp.md
+          
+          gh pr list --author "dependabot[bot]" --label "security" --json number,title,url,createdAt | \
+          jq -r '.[] | "- [#\(.number)](\(.url)) \(.title) (Created: \(.createdAt | split("T")[0]))"' >> issue_body_temp.md || echo "None" >> issue_body_temp.md
+          
+          echo "
+        ### 🔴 Major Updates (Priority: MEDIUM)
+        " >> issue_body_temp.md
+          
+          gh pr list --author "dependabot[bot]" --label "major" --json number,title,url,createdAt | \
+          jq -r '.[] | "- [#\(.number)](\(.url)) \(.title) (Created: \(.createdAt | split("T")[0]))"' >> issue_body_temp.md || echo "None" >> issue_body_temp.md
+          
+          echo "
+        ### 🟡 Minor Updates (Priority: LOW)
+        " >> issue_body_temp.md
+          
+          gh pr list --author "dependabot[bot]" --label "minor" --json number,title,url,createdAt | \
+          jq -r '.[] | "- [#\(.number)](\(.url)) \(.title) (Created: \(.createdAt | split("T")[0]))"' >> issue_body_temp.md || echo "None" >> issue_body_temp.md
+          
+          echo "
+        ### 🟢 Patch Updates (Auto-merge)
+        " >> issue_body_temp.md
+          
+          gh pr list --author "dependabot[bot]" --label "patch" --json number,title,url,createdAt | \
+          jq -r '.[] | "- [#\(.number)](\(.url)) \(.title) (Created: \(.createdAt | split("T")[0]))"' >> issue_body_temp.md || echo "None" >> issue_body_temp.md
+        else
+          echo "🎉 **All dependencies are up to date!** No open Dependabot PRs." >> issue_body_temp.md
+        fi
+        
+        echo "
+        ## 🎯 Recommended Actions
+        
+        $(if [ ${{ steps.analyze-prs.outputs.SECURITY_PRS }} -gt 0 ]; then
+          echo "1. ⚠️ **URGENT:** Review and merge security updates immediately"
+        fi)
+        $(if [ ${{ steps.analyze-prs.outputs.MAJOR_PRS }} -gt 0 ]; then
+          echo "2. 📖 Review major updates for breaking changes before merging"
+        fi)
+        $(if [ ${{ steps.analyze-prs.outputs.MINOR_PRS }} -gt 5 ]; then
+          echo "3. 🧹 Consider batch-reviewing minor updates to reduce PR volume"
+        fi)
+        $(if [ ${{ steps.analyze-prs.outputs.OPEN_PRS }} -gt 10 ]; then
+          echo "4. ⚡ High PR volume detected - consider adjusting Dependabot frequency"
+        fi)
+        
+        ## 📈 Statistics
+        
+        - **Repository:** ${{ github.repository }}
+        - **Branch:** ${{ github.ref_name }}
+        - **Java Version:** 21
+        - **Gradle Version:** $(./gradlew --version | grep 'Gradle' | head -n1)
+        - **Last Analysis:** $(date '+%Y-%m-%d %H:%M:%S UTC')
+        
+        ## 🔧 Configuration
+        
+        - **Dependabot Schedule:** Weekly (Mondays, 08:00 CET)
+        - **Auto-merge:** Enabled for patch and safe minor updates
+        - **Review Required:** Major updates and sensitive dependencies
+        
+        ---
+        
+        *This dashboard is automatically updated weekly. For immediate updates, run the [Dependency Dashboard workflow](https://github.com/${{ github.repository }}/actions/workflows/dependency-dashboard.yml) manually.*
+        " >> issue_body_temp.md
+        
+        # Combine base issue body with temp file
+        FULL_ISSUE_BODY="\$ISSUE_BODY
+        \$(cat issue_body_temp.md)"
+        
+        # Check if dashboard issue already exists
+        EXISTING_ISSUE=\$(gh issue list --label "dependency-dashboard" --state open --json number --jq '.[0].number // empty')
+        
+        if [ -n "\$EXISTING_ISSUE" ]; then
+          echo "Updating existing dashboard issue #\$EXISTING_ISSUE"
+          echo "\$FULL_ISSUE_BODY" | gh issue edit "\$EXISTING_ISSUE" --body-file -
+        else
+          echo "Creating new dashboard issue"
+          echo "\$FULL_ISSUE_BODY" | gh issue create --title "\$ISSUE_TITLE" --body-file - --label "dependency-dashboard,automated"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Summary
+      run: |
+        echo "### 📊 Dependency Dashboard Updated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Open Dependabot PRs:** ${{ steps.analyze-prs.outputs.OPEN_PRS }}" >> $GITHUB_STEP_SUMMARY
+        echo "- 🚨 Security: ${{ steps.analyze-prs.outputs.SECURITY_PRS }}" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔴 Major: ${{ steps.analyze-prs.outputs.MAJOR_PRS }}" >> $GITHUB_STEP_SUMMARY
+        echo "- 🟡 Minor: ${{ steps.analyze-prs.outputs.MINOR_PRS }}" >> $GITHUB_STEP_SUMMARY
+        echo "- 🟢 Patch: ${{ steps.analyze-prs.outputs.PATCH_PRS }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Dashboard Issue:** [View Dashboard](https://github.com/${{ github.repository }}/issues?q=is%3Aissue+label%3Adependency-dashboard+is%3Aopen)" >> $GITHUB_STEP_SUMMARY

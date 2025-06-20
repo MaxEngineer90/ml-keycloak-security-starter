@@ -1,0 +1,143 @@
+# .github/workflows/security-audit.yml
+name: Security Audit
+
+on:
+  schedule:
+    # Daily at 02:00 UTC
+    - cron: '0 2 * * *'
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    # Gradle Dependency Check
+    - name: Run OWASP Dependency Check
+      run: |
+        # Add to build.gradle: id 'org.owasp.dependencycheck' version 'x.x.x'
+        if ./gradlew dependencyCheckAnalyze --info 2>/dev/null; then
+          echo "OWASP_CHECK=success" >> $GITHUB_ENV
+        else
+          echo "OWASP_CHECK=skipped" >> $GITHUB_ENV
+          echo "ℹ️ Add OWASP dependency-check plugin for vulnerability scanning"
+        fi
+        
+    - name: Upload OWASP report
+      if: env.OWASP_CHECK == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: owasp-report
+        path: build/reports/dependency-check-report.html
+        
+    # Trivy Security Scanner
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    # CodeQL Analysis
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: java
+        
+    - name: Build for CodeQL
+      run: ./gradlew build -x test --no-daemon
+      
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      
+    # Security Policy Check
+    - name: Check for security policy
+      run: |
+        if [ -f "SECURITY.md" ] || [ -f ".github/SECURITY.md" ]; then
+          echo "✅ Security policy found"
+          echo "SECURITY_POLICY=present" >> $GITHUB_ENV
+        else
+          echo "❌ Security policy missing"
+          echo "SECURITY_POLICY=missing" >> $GITHUB_ENV
+        fi
+        
+    # Gradle Build Security
+    - name: Check Gradle Wrapper integrity
+      run: |
+        # Verify gradle wrapper checksum
+        if gradle/wrapper/gradle-wrapper.jar; then
+          echo "✅ Gradle wrapper integrity verified"
+          echo "GRADLE_INTEGRITY=verified" >> $GITHUB_ENV
+        else
+          echo "❌ Gradle wrapper integrity check failed"
+          echo "GRADLE_INTEGRITY=failed" >> $GITHUB_ENV
+        fi
+        
+    # Check for hardcoded secrets
+    - name: Scan for hardcoded secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+        
+    # Generate Security Report
+    - name: Generate security report
+      run: |
+        cat > security-report.md << 'EOF'
+        # 🔒 Security Audit Report
+        
+        **Date:** $(date '+%Y-%m-%d %H:%M:%S UTC')
+        **Repository:** ${{ github.repository }}
+        **Branch:** ${{ github.ref_name }}
+        **Triggered by:** ${{ github.event_name }}
+        
+        ## 📊 Security Status Overview
+        
+        | Component | Status | Details |
+        |

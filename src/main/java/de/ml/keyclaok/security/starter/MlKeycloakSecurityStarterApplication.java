@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MlKeyclaokSecurityStarterApplication {
+public class MlKeycloakSecurityStarterApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MlKeyclaokSecurityStarterApplication.class, args);
+		SpringApplication.run(MlKeycloakSecurityStarterApplication.class, args);
 	}
 }
