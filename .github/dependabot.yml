@@ -5,7 +5,10 @@ updates:
 - package-ecosystem: "gradle"
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: "weekly"
+    day: "monday"
+    time: "08:00"
+    timezone: "Europe/Berlin"
 
   # Rebase strategy for cleaner git history
   rebase-strategy: "auto"
@@ -84,9 +87,11 @@ updates:
   - "MaxEngineer90"
   reviewers:
   - "MaxEngineer90"
-  # Commit message format
+
+  # Conventional Commits format
   commit-message:
     prefix: "deps"
+    prefix-development: "deps"
     include: "scope"
 
   # Limit open PRs
@@ -124,21 +129,3 @@ updates:
     github-actions:
       patterns:
       - "*"
-
-# Docker Updates (if you use Docker)
-- package-ecosystem: "docker"
-  directory: "/"
-  schedule:
-    interval: "weekly"
-    day: "tuesday"
-    time: "08:00"
-    timezone: "Europe/Berlin"
-
-  commit-message:
-    prefix: "docker"
-    include: "scope"
-
-  assignees:
-  - "MaxEngineer90"
-
-  open-pull-requests-limit: 3
