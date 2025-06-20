@@ -1,0 +1,144 @@
+# .github/dependabot.yml
+version: 2
+updates:
+# Gradle Dependencies
+- package-ecosystem: "gradle"
+  directory: "/"
+  schedule:
+    interval: "daily"
+
+  # Rebase strategy for cleaner git history
+  rebase-strategy: "auto"
+
+  # Dependency grouping
+  groups:
+    # Security updates - highest priority (handled by auto-merge workflow)
+    # Note: Security updates are detected via alert-state, not dependency-type
+
+    # Patch updates - safe for auto-merge
+    patch-updates:
+      patterns:
+      - "*"
+      update-types:
+      - "patch"
+
+    # Spring ecosystem
+    spring-framework:
+      patterns:
+      - "org.springframework*"
+      - "org.springframework.boot*"
+      - "org.springframework.security*"
+      - "org.springframework.data*"
+      update-types:
+      - "minor"
+      - "patch"
+
+    # Testing dependencies
+    test-dependencies:
+      patterns:
+      - "*junit*"
+      - "*mockito*"
+      - "*testcontainers*"
+      - "*spring-boot-starter-test*"
+      - "*assertj*"
+      - "*hamcrest*"
+      update-types:
+      - "minor"
+      - "patch"
+
+    # Build and development tools
+    build-tools:
+      patterns:
+      - "*gradle*"
+      - "*lombok*"
+      - "*maven*"
+      update-types:
+      - "minor"
+      - "patch"
+
+    # Logging dependencies
+    logging-dependencies:
+      patterns:
+      - "*slf4j*"
+      - "*logback*"
+      - "*log4j*"
+      update-types:
+      - "minor"
+      - "patch"
+
+    # Database dependencies
+    database-dependencies:
+      patterns:
+      - "*h2*"
+      - "*postgresql*"
+      - "*mysql*"
+      - "*hibernate*"
+      - "*flyway*"
+      - "*liquibase*"
+      update-types:
+      - "minor"
+      - "patch"
+
+  # Assignees and reviewers
+  assignees:
+  - "MaxEngineer90"
+  reviewers:
+  - "MaxEngineer90"
+  # Commit message format
+  commit-message:
+    prefix: "deps"
+    include: "scope"
+
+  # Limit open PRs
+  open-pull-requests-limit: 10
+
+  # Dependencies to ignore
+  ignore:
+  # Ignore Java major version updates
+  - dependency-name: "java"
+    update-types: [ "version-update:semver-major" ]
+  # Ignore specific problematic updates if needed
+  # - dependency-name: "some-problematic-lib"
+  #   versions: ["2.0.0"]
+
+  # GitHub Actions Updates
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: "monthly"
+    day: "monday"
+    time: "08:00"
+    timezone: "Europe/Berlin"
+
+  commit-message:
+    prefix: "ci"
+    include: "scope"
+
+  assignees:
+  - "MaxEngineer90"
+
+  open-pull-requests-limit: 5
+
+  # Group all GitHub Actions updates
+  groups:
+    github-actions:
+      patterns:
+      - "*"
+
+# Docker Updates (if you use Docker)
+- package-ecosystem: "docker"
+  directory: "/"
+  schedule:
+    interval: "weekly"
+    day: "tuesday"
+    time: "08:00"
+    timezone: "Europe/Berlin"
+
+  commit-message:
+    prefix: "docker"
+    include: "scope"
+
+  assignees:
+  - "MaxEngineer90"
+
+  open-pull-requests-limit: 3
