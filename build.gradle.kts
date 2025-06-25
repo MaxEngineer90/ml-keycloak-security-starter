@@ -2,43 +2,21 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
-    `maven-publish` 
+    `maven-publish`
     id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
 group = "io.github.maxengineer90"
 description = "Keycloak Spring Boot Security Integration"
 
-
-
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.6"))
+    implementation("org.springframework.boot:spring-boot-starter-web")
     
-    implementation(libs.spring.boot.starter.security)
-    implementation(libs.spring.boot.autoconfigure)
-    implementation(libs.spring.boot.starter.oauth2.resource.server)
-    implementation(libs.spring.security.oauth2.jose)
-    implementation(libs.jackson.databind)
-    
-    compileOnly(libs.spring.boot.configuration.processor)
-    
-    implementation(libs.mapstruct)
-    annotationProcessor(libs.mapstruct.processor)
-    
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-    
-    testImplementation(libs.spring.boot.starter.test) {
-        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
-    }
-    testImplementation(libs.spring.security.test)
-    testCompileOnly(libs.lombok)
-    testAnnotationProcessor(libs.lombok)
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 java {
@@ -50,26 +28,14 @@ java {
 }
 
 jgitver {
-  
     strategy("MAVEN")
-    
     nonQualifierBranches("main")
-    
-    
     versionPattern("\${M}.\${m}.\${p}\${<meta.DIRTY_TEXT}")
-    
- 
     tagVersionPattern("\${v}")
-    
-  
     regexVersionTag("([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
     
-   
     qualifierBranchingPolicies {
-       
         addBranchingPolicy("develop", "SNAPSHOT")
-        
-    
         addBranchingPolicy("feature/(.*)", "SNAPSHOT")
     }
     
@@ -90,7 +56,6 @@ tasks.register("showVersion") {
         println("=".repeat(50))
     }
 }
-
 
 fun getCurrentBranch(): String {
     return try {
