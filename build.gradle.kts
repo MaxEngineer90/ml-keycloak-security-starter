@@ -75,6 +75,11 @@ publishing {
     publications {
         register<MavenPublication>("gpr") {
             from(components["java"])
+            
+            pom {
+                name.set("ML Keycloak Security Starter")
+                description.set("Keycloak Spring Boot Security Integration")
+            }
         }
     }
 }
