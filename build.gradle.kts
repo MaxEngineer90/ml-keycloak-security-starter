@@ -2,7 +2,6 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
-    `maven-publish`
     id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
@@ -57,51 +56,5 @@ fun getCurrentBranch(): String {
         process.inputStream.bufferedReader().readText().trim()
     } catch (e: Exception) {
         "unknown"
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
-            }
-        }
-    }
-    
-    publications {
-        register<MavenPublication>("gpr") {
-            from(components["java"])
-            
-            pom {
-                name.set("ML Keycloak Security Starter")
-                description.set("Keycloak Spring Boot Security Integration")
-                url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
-                
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
-                
-                developers {
-                    developer {
-                        id.set("MaxEngineer90")
-                        name.set("Max Engineer")
-                        email.set("max@example.com")
-                    }
-                }
-                
-                scm {
-                    connection.set("scm:git:git://github.com/MaxEngineer90/ml-keycloak-security-starter.git")
-                    developerConnection.set("scm:git:ssh://github.com:MaxEngineer90/ml-keycloak-security-starter.git")
-                    url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
-                }
-            }
-        }
     }
 }
