@@ -30,17 +30,9 @@ java {
 jgitver {
     strategy("MAVEN")
     nonQualifierBranches("main")
-    versionPattern("\${M}.\${m}.\${p}\${<meta.DIRTY_TEXT}")
+    versionPattern("\${M}.\${m}.\${p}")
     tagVersionPattern("\${v}")
     regexVersionTag("([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
-    
-    qualifierBranchingPolicies {
-        addBranchingPolicy("develop", "SNAPSHOT")
-        addBranchingPolicy("feature/(.*)", "SNAPSHOT")
-    }
-    
-    autoIncrementPatch(false) 
-    useCommitDistance(false)
 }
 
 tasks.test {
