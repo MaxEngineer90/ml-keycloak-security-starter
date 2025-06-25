@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: ml-keycloak-security-starter
+  profiles:
+    active: dev
+
+server:
+  port: 8070
