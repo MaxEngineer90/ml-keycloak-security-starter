@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
+    `maven-publish`
     id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
@@ -56,5 +57,24 @@ fun getCurrentBranch(): String {
         process.inputStream.bufferedReader().readText().trim()
     } catch (e: Exception) {
         "unknown"
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            }
+        }
+    }
+    
+    publications {
+        register<MavenPublication>("gpr") {
+            from(components["java"])
+        }
     }
 }
