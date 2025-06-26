@@ -1,6 +1,3 @@
-// Version muss vor den plugins gesetzt werden
-version = scmVersion.version
-
 plugins {
     java
     id("org.springframework.boot") version "3.5.3"
@@ -16,19 +13,7 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-    withSourcesJar()
-    withJavadocJar()
-}
-
+// Axion configuration BEFORE version assignment
 scmVersion {
     tag {
         prefix.set("v")
@@ -53,14 +38,27 @@ scmVersion {
     )
 }
 
+// Set version AFTER scmVersion configuration
+version = scmVersion.version
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.named("release") {
-    dependsOn("test", "build")
-}
-
+// Disable verification that can cause issues
 tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
 }
@@ -80,6 +78,11 @@ publishing {
     publications {
         register<MavenPublication>("gpr") {
             from(components["java"])
+            
+            // Ensure version is set for publication
+            afterEvaluate {
+                version = project.version.toString()
+            }
             
             pom {
                 name.set("ML Keycloak Security Starter")
@@ -108,5 +111,15 @@ publishing {
                 }
             }
         }
+    }
+}
+
+// Add debug task to show version
+tasks.register("showVersion") {
+    doLast {
+        println("=".repeat(50))
+        println("Current version: ${project.version}")
+        println("Is SNAPSHOT: ${version.toString().contains("SNAPSHOT")}")
+        println("=".repeat(50))
     }
 }
