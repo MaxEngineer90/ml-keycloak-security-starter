@@ -13,6 +13,19 @@ repositories {
     mavenCentral()
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
 scmVersion {
     tag {
         prefix.set("v")
@@ -35,32 +48,9 @@ scmVersion {
         "fix/.*" to "incrementPatch",
         "develop" to "incrementMinor"
     )
-    
-    initialVersion("0.1.0-SNAPSHOT")
 }
 
 version = scmVersion.version
-
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-    withSourcesJar()
-    withJavadocJar()
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.matching { it.name == "verifyRelease" }.configureEach {
-    enabled = false
-}
 
 publishing {
     repositories {
@@ -110,6 +100,14 @@ publishing {
             }
         }
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.matching { it.name == "verifyRelease" }.configureEach {
+    enabled = false
 }
 
 tasks.register("showVersion") {
