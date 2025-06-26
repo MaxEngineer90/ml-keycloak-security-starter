@@ -63,39 +63,43 @@ publishing {
             }
         }
     }
-    
-    publications {
-        create<MavenPublication>("gpr") {
-            from(components["java"])
-            
-            groupId = project.group.toString()
-            artifactId = project.name
-            version = project.version.toString()
-            
-            pom {
-                name.set("ML Keycloak Security Starter")
-                description.set("Keycloak Spring Boot Security Integration")
-                url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("gpr") {
+                from(components["java"])
                 
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = project.version.toString()
                 
-                developers {
-                    developer {
-                        id.set("MaxEngineer90")
-                        name.set("Max Engineer")
-                        email.set("max@example.com")
-                    }
-                }
-                
-                scm {
-                    connection.set("scm:git:git://github.com/MaxEngineer90/ml-keycloak-security-starter.git")
-                    developerConnection.set("scm:git:ssh://github.com:MaxEngineer90/ml-keycloak-security-starter.git")
+                pom {
+                    name.set("ML Keycloak Security Starter")
+                    description.set("Keycloak Spring Boot Security Integration")
                     url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+                    
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id.set("MaxEngineer90")
+                            name.set("Max Engineer")
+                            email.set("max@example.com")
+                        }
+                    }
+                    
+                    scm {
+                        connection.set("scm:git:git://github.com/MaxEngineer90/ml-keycloak-security-starter.git")
+                        developerConnection.set("scm:git:ssh://github.com:MaxEngineer90/ml-keycloak-security-starter.git")
+                        url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+                    }
                 }
             }
         }
