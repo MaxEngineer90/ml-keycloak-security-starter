@@ -74,6 +74,7 @@ afterEvaluate {
             create<MavenPublication>("gpr") {
                 from(components["java"])
                 
+                // FIX: Version mapping für resolved dependencies
                 versionMapping {
                     usage("java-api") {
                         fromResolutionOf("runtimeClasspath")
