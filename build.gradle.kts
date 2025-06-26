@@ -65,12 +65,12 @@ publishing {
     }
     
     publications {
-        register<MavenPublication>("gpr") {
+        create<MavenPublication>("gpr") {
             from(components["java"])
             
-            afterEvaluate {
-                version = project.version.toString()
-            }
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
             
             pom {
                 name.set("ML Keycloak Security Starter")
