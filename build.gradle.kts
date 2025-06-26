@@ -26,7 +26,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-
 scmVersion {
     tag {
         prefix.set("v")
@@ -56,9 +55,7 @@ scmVersion {
     }
 }
 
-
 version = scmVersion.version
-
 
 afterEvaluate {
     publishing {
@@ -77,7 +74,15 @@ afterEvaluate {
             create<MavenPublication>("gpr") {
                 from(components["java"])
                 
-                // Explizit alle Koordinaten setzen
+                versionMapping {
+                    usage("java-api") {
+                        fromResolutionOf("runtimeClasspath")
+                    }
+                    usage("java-runtime") {
+                        fromResolutionResult()
+                    }
+                }
+                
                 groupId = project.group.toString()
                 artifactId = project.name
                 version = project.version.toString()
@@ -113,11 +118,9 @@ afterEvaluate {
     }
 }
 
-
 tasks.test {
     useJUnitPlatform()
 }
-
 
 tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
