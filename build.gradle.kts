@@ -48,17 +48,29 @@ publishing {
         create<MavenPublication>("maven") {
             from(components["java"])
             
-            groupId = project.group.toString()
-            artifactId = project.name
-            version = project.version.toString()
-            
-            suppressAllPomMetadataWarnings()
+            versionMapping {
+                usage("java-api") {
+                    fromResolutionOf("runtimeClasspath")
+                }
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
         }
     }
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.jar {
+    enabled = true
+    archiveClassifier.set("")
+}
+
+tasks.bootJar {
+    enabled = false
 }
 
 tasks.register("showVersion") {
