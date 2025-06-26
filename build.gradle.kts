@@ -1,3 +1,6 @@
+// Version muss vor den plugins gesetzt werden
+version = scmVersion.version
+
 plugins {
     java
     id("org.springframework.boot") version "3.5.3"
@@ -50,8 +53,6 @@ scmVersion {
     )
 }
 
-project.version = scmVersion.version
-
 tasks.test {
     useJUnitPlatform()
 }
@@ -79,7 +80,6 @@ publishing {
     publications {
         register<MavenPublication>("gpr") {
             from(components["java"])
-            version = project.version.toString()
             
             pom {
                 name.set("ML Keycloak Security Starter")

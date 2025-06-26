@@ -36,10 +36,10 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## MIT License Summary
 
-✅ Commercial use - The project may be used commercially
-✅ Modification - The project may be modified
-✅ Distribution - The project may be distributed
-✅ Private use - The project may be used privately
-❗ License and copyright notice - Must be included when using the project
-❌ Liability - No liability from the authors
-❌ Warranty - No warranty of functionality
+✅ Commercial use - The project may be used commercially </br>
+✅ Modification - The project may be modified </br>
+✅ Distribution - The project may be distributed </br>
+✅ Private use - The project may be used privately </br>
+❗ License and copyright notice - Must be included when using the project </br>
+❌ Liability - No liability from the authors </br>
+❌ Warranty - No warranty of functionality </br>
