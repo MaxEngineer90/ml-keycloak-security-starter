@@ -116,9 +116,9 @@ tasks.matching { it.name == "verifyRelease" }.configureEach {
 
 tasks.register("showVersion") {
     doLast {
-        println("=".repeat(50))
+        println("*".repeat(50))
         println("Current version: ${project.version}")
         println("Is SNAPSHOT: ${version.toString().contains("SNAPSHOT")}")
-        println("=".repeat(50))
+        println("*".repeat(50))
     }
 }
