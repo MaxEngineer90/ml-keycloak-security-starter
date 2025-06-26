@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop, "feature/**" ]
+    branches: [develop, "feature/**"]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
@@ -35,8 +35,8 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
       
-    - name: Show version info
-      run: ./gradlew showVersion
+    - name: Show version
+      run: ./gradlew currentVersion
       
     - name: Run tests
       run: ./gradlew test
@@ -74,10 +74,10 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
       
-    - name: Show version
-      run: ./gradlew showVersion
+    - name: Show SNAPSHOT version
+      run: ./gradlew currentVersion
       
-    - name: Publish to GitHub Packages
+    - name: Publish SNAPSHOT to GitHub Packages
       run: ./gradlew publish
       env:
         USERNAME: ${{ github.actor }}

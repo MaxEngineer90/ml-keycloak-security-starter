@@ -3,7 +3,7 @@ plugins {
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
     `maven-publish`
-    id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
+    id("pl.allegro.tech.build.axion-release") version "1.18.11"
 }
 
 group = "io.github.maxengineer90"
@@ -15,7 +15,6 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
-    
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
@@ -27,37 +26,51 @@ java {
     withJavadocJar()
 }
 
-jgitver {
-    strategy("MAVEN")
-    nonQualifierBranches("main")
-    versionPattern("\${M}.\${m}.\${p}")
-    tagVersionPattern("\${v}")
-    regexVersionTag("([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
+scmVersion {
+    tag {
+        prefix.set("v")
+        versionSeparator.set("")
+    }
+    
+    nextVersion {
+        suffix.set("SNAPSHOT")
+        separator.set("-")
+    }
+    
+    versionIncrementer("incrementPatch")
+    
+    repository {
+        type.set("git")
+    }
+    
+    branchVersionIncrementer = mapOf(
+        "feature/.*" to "incrementMinor",
+        "fix/.*" to "incrementPatch",
+        "develop" to "incrementMinor"
+    )
+    
+    // SNAPSHOT für alle Branches außer main
+    snapshotCreator { version, position ->
+        if (position.branch != "main") {
+            "${version.toString()}-SNAPSHOT"
+        } else {
+            version.toString()
+        }
+    }
 }
+
+version = scmVersion.version
 
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.register("showVersion") {
-    doLast {
-        println("=".repeat(50))
-        println("Current branch: ${getCurrentBranch()}")
-        println("Current version: ${project.version}")
-        println("Is SNAPSHOT: ${version.toString().contains("SNAPSHOT")}")
-        println("=".repeat(50))
-    }
+tasks.named("release") {
+    dependsOn("test", "build")
 }
 
-fun getCurrentBranch(): String {
-    return try {
-        val process = ProcessBuilder("git", "branch", "--show-current")
-            .directory(project.rootDir)
-            .start()
-        process.inputStream.bufferedReader().readText().trim()
-    } catch (e: Exception) {
-        "unknown"
-    }
+tasks.matching { it.name == "verifyRelease" }.configureEach {
+    enabled = false
 }
 
 publishing {
@@ -79,6 +92,28 @@ publishing {
             pom {
                 name.set("ML Keycloak Security Starter")
                 description.set("Keycloak Spring Boot Security Integration")
+                url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+                
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id.set("MaxEngineer90")
+                        name.set("Max Engineer")
+                        email.set("max@example.com")
+                    }
+                }
+                
+                scm {
+                    connection.set("scm:git:git://github.com/MaxEngineer90/ml-keycloak-security-starter.git")
+                    developerConnection.set("scm:git:ssh://github.com:MaxEngineer90/ml-keycloak-security-starter.git")
+                    url.set("https://github.com/MaxEngineer90/ml-keycloak-security-starter")
+                }
             }
         }
     }
