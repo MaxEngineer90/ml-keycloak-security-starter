@@ -26,7 +26,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-// Axion Release Plugin Konfiguration
+
 scmVersion {
     tag {
         prefix.set("v")
@@ -56,10 +56,10 @@ scmVersion {
     }
 }
 
-// Version von Axion setzen
+
 version = scmVersion.version
 
-// Maven Publishing - komplett in afterEvaluate für korrekte Timing
+
 afterEvaluate {
     publishing {
         repositories {
@@ -113,22 +113,21 @@ afterEvaluate {
     }
 }
 
-// Task-Konfiguration
+
 tasks.test {
     useJUnitPlatform()
 }
 
-// Axion verifyRelease Task deaktivieren (optional)
+
 tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
 }
 
-// Hilfstask zum Anzeigen der aktuellen Version
 tasks.register("showVersion") {
     doLast {
-        println("=" * 50)
+        println("*".repeat(50))
         println("Current version: ${project.version}")
         println("Is SNAPSHOT: ${version.toString().contains("SNAPSHOT")}")
-        println("=" * 50)
+        println("*".repeat(50))
     }
 }
