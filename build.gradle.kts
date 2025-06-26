@@ -13,7 +13,6 @@ repositories {
     mavenCentral()
 }
 
-// Axion configuration BEFORE version assignment
 scmVersion {
     tag {
         prefix.set("v")
@@ -36,9 +35,10 @@ scmVersion {
         "fix/.*" to "incrementPatch",
         "develop" to "incrementMinor"
     )
+    
+    initialVersion("0.1.0-SNAPSHOT")
 }
 
-// Set version AFTER scmVersion configuration
 version = scmVersion.version
 
 dependencies {
@@ -58,7 +58,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Disable verification that can cause issues
 tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
 }
@@ -79,7 +78,6 @@ publishing {
         register<MavenPublication>("gpr") {
             from(components["java"])
             
-            // Ensure version is set for publication
             afterEvaluate {
                 version = project.version.toString()
             }
@@ -114,7 +112,6 @@ publishing {
     }
 }
 
-// Add debug task to show version
 tasks.register("showVersion") {
     doLast {
         println("=".repeat(50))
