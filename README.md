@@ -30,3 +30,16 @@ implementation("io.github.maxengineer90:ml-keycloak-security-starter:1.0.0")
 ```bash
 ./gradlew build
 ```
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## MIT License Summary
+
+✅ Commercial use - The project may be used commercially
+✅ Modification - The project may be modified
+✅ Distribution - The project may be distributed
+✅ Private use - The project may be used privately
+❗ License and copyright notice - Must be included when using the project
+❌ Liability - No liability from the authors
+❌ Warranty - No warranty of functionality

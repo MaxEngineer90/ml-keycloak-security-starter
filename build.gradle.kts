@@ -48,18 +48,9 @@ scmVersion {
         "fix/.*" to "incrementPatch",
         "develop" to "incrementMinor"
     )
-    
-    // SNAPSHOT für alle Branches außer main
-    snapshotCreator { version, position ->
-        if (position.branch != "main") {
-            "${version.toString()}-SNAPSHOT"
-        } else {
-            version.toString()
-        }
-    }
 }
 
-version = scmVersion.version
+project.version = scmVersion.version
 
 tasks.test {
     useJUnitPlatform()
@@ -88,6 +79,7 @@ publishing {
     publications {
         register<MavenPublication>("gpr") {
             from(components["java"])
+            version = project.version.toString()
             
             pom {
                 name.set("ML Keycloak Security Starter")
