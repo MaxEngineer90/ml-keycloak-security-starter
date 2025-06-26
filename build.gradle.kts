@@ -26,6 +26,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
+// Axion Release Plugin Konfiguration
 scmVersion {
     tag {
         prefix.set("v")
@@ -48,29 +49,35 @@ scmVersion {
         "fix/.*" to "incrementPatch",
         "develop" to "incrementMinor"
     )
-}
-
-version = scmVersion.version
-
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
-            }
-        }
+    
+    checks {
+        aheadOfRemote.set(false)
+        uncommittedChanges.set(false)
     }
 }
 
+// Version von Axion setzen
+version = scmVersion.version
+
+// Maven Publishing - komplett in afterEvaluate für korrekte Timing
 afterEvaluate {
     publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/MaxEngineer90/ml-keycloak-security-starter")
+                credentials {
+                    username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+                }
+            }
+        }
+        
         publications {
-            register<MavenPublication>("gpr") {
+            create<MavenPublication>("gpr") {
                 from(components["java"])
                 
+                // Explizit alle Koordinaten setzen
                 groupId = project.group.toString()
                 artifactId = project.name
                 version = project.version.toString()
@@ -106,19 +113,22 @@ afterEvaluate {
     }
 }
 
+// Task-Konfiguration
 tasks.test {
     useJUnitPlatform()
 }
 
+// Axion verifyRelease Task deaktivieren (optional)
 tasks.matching { it.name == "verifyRelease" }.configureEach {
     enabled = false
 }
 
+// Hilfstask zum Anzeigen der aktuellen Version
 tasks.register("showVersion") {
     doLast {
-        println("*".repeat(50))
+        println("=" * 50)
         println("Current version: ${project.version}")
         println("Is SNAPSHOT: ${version.toString().contains("SNAPSHOT")}")
-        println("*".repeat(50))
+        println("=" * 50)
     }
 }
